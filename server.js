@@ -1,0 +1,222 @@
+'use strict';
+// The Comparison Society – web server for Railway.
+// Serves the site, stores the site data (state.json) and pictures (uploads/) on disk,
+// and protects saving behind an admin password.
+
+const express = require('express');
+const crypto = require('crypto');
+const fs = require('fs');
+const path = require('path');
+
+const PORT = process.env.PORT || 3000;
+const DATA_DIR = path.resolve(process.env.DATA_DIR || process.env.RAILWAY_VOLUME_MOUNT_PATH || path.join(__dirname, 'data'));
+const UPLOAD_DIR = path.join(DATA_DIR, 'uploads');
+const HISTORY_DIR = path.join(DATA_DIR, 'history');
+const STATE_FILE = path.join(DATA_DIR, 'state.json');
+const TRAFFIC_FILE = path.join(DATA_DIR, 'traffic.json');
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || '';
+const SECRET = process.env.SESSION_SECRET || ADMIN_PASSWORD;
+const HISTORY_KEEP = 30;
+const SESSION_DAYS = 30;
+const MIME_EXT = { 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp', 'image/gif': 'gif' };
+
+for (const d of [DATA_DIR, UPLOAD_DIR, HISTORY_DIR]) fs.mkdirSync(d, { recursive: true });
+
+const TEMPLATE = fs.readFileSync(path.join(__dirname, 'public', 'index.html'), 'utf8');
+const SEED_RE = /(<script id="seed" type="application\/json">)[\s\S]*?(<\/script>)/;
+if (!SEED_RE.test(TEMPLATE)) throw new Error('public/index.html has no seed script');
+
+// ---------- storage ----------
+
+function writeAtomic(file, text) {
+  const tmp = file + '.' + process.pid + '.tmp';
+  fs.writeFileSync(tmp, text);
+  fs.renameSync(tmp, file);
+}
+
+function readState() {
+  try { return JSON.parse(fs.readFileSync(STATE_FILE, 'utf8')); } catch (e) { return null; }
+}
+
+function writeState(state) {
+  const text = JSON.stringify(state);
+  writeAtomic(STATE_FILE, text);
+  // keep the last HISTORY_KEEP versions so a bad save can be undone by hand
+  fs.writeFileSync(path.join(HISTORY_DIR, String(Date.now()).padStart(14, '0') + '.json'), text);
+  const old = fs.readdirSync(HISTORY_DIR).filter(f => f.endsWith('.json')).sort().slice(0, -HISTORY_KEEP);
+  for (const f of old) fs.unlinkSync(path.join(HISTORY_DIR, f));
+}
+
+function saveImage(buf, mime) {
+  const ext = MIME_EXT[mime];
+  if (!ext) return null;
+  const name = crypto.createHash('sha256').update(buf).digest('hex').slice(0, 32) + '.' + ext;
+  const file = path.join(UPLOAD_DIR, name);
+  if (!fs.existsSync(file)) writeAtomic(file, buf);
+  return '/uploads/' + name;
+}
+
+// Pictures restored from an old backup arrive as base64 inside the data.
+// Move each one into its own file and keep only its address in the data.
+const DATA_URL_RE = /^data:(image\/(?:jpeg|png|webp|gif));base64,([A-Za-z0-9+/=\s]+)$/;
+function extractImages(v, moved) {
+  if (typeof v === 'string') {
+    const m = DATA_URL_RE.exec(v);
+    if (!m) return v;
+    const url = saveImage(Buffer.from(m[2], 'base64'), m[1]);
+    if (!url) return v;
+    moved.n++;
+    return url;
+  }
+  if (Array.isArray(v)) return v.map(x => extractImages(x, moved));
+  if (v && typeof v === 'object') {
+    const o = {};
+    for (const k of Object.keys(v)) o[k] = extractImages(v[k], moved);
+    return o;
+  }
+  return v;
+}
+
+// ---------- admin login ----------
+
+function sign(value) {
+  return crypto.createHmac('sha256', SECRET).update(value).digest('base64url');
+}
+
+function makeToken() {
+  const exp = String(Date.now() + SESSION_DAYS * 864e5);
+  return exp + '.' + sign(exp);
+}
+
+function isAdmin(req) {
+  if (!ADMIN_PASSWORD) return false;
+  const m = /(?:^|;\s*)cs_admin=([^;]+)/.exec(req.headers.cookie || '');
+  if (!m) return false;
+  const [exp, sig] = decodeURIComponent(m[1]).split('.');
+  if (!exp || !sig || +exp < Date.now()) return false;
+  const want = Buffer.from(sign(exp));
+  const got = Buffer.from(sig);
+  return want.length === got.length && crypto.timingSafeEqual(want, got);
+}
+
+function passwordMatches(given) {
+  const a = crypto.createHash('sha256').update(String(given || '')).digest();
+  const b = crypto.createHash('sha256').update(ADMIN_PASSWORD).digest();
+  return crypto.timingSafeEqual(a, b);
+}
+
+const failures = new Map(); // ip -> { n, until }
+function lockedOut(ip) {
+  const f = failures.get(ip);
+  return f && f.until > Date.now();
+}
+function noteFailure(ip) {
+  const f = failures.get(ip) || { n: 0, until: 0 };
+  f.n++;
+  if (f.n >= 5) { f.n = 0; f.until = Date.now() + 15 * 60e3; }
+  failures.set(ip, f);
+}
+
+function requireAdmin(req, res, next) {
+  if (isAdmin(req)) return next();
+  res.status(401).json({ error: 'login required' });
+}
+
+// ---------- app ----------
+
+const app = express();
+app.set('trust proxy', 1);
+app.disable('x-powered-by');
+
+function sendSite(req, res) {
+  const state = readState();
+  let html = TEMPLATE;
+  if (state) {
+    const json = JSON.stringify(state).replace(/</g, '\\u003c');
+    html = html.replace(SEED_RE, (m, a, b) => a + json + b);
+  }
+  html = html.replace('<meta charset=utf8>', '<meta charset=utf8><script>window.__SERVER=1;window.__ADMIN=' + (isAdmin(req) ? 1 : 0) + '</script>');
+  res.set('Cache-Control', 'no-store').type('html').send(html);
+}
+
+app.get('/', sendSite);
+app.get('/index.html', sendSite);
+
+app.use('/uploads', express.static(UPLOAD_DIR, { immutable: true, maxAge: '365d', index: false }));
+
+app.get('/healthz', (req, res) => res.send('ok'));
+
+app.get('/api/state', (req, res) => {
+  res.set('Cache-Control', 'no-store').json(readState());
+});
+
+app.put('/api/state', requireAdmin, express.json({ limit: '60mb' }), (req, res) => {
+  const incoming = req.body;
+  if (!incoming || typeof incoming !== 'object' || !Array.isArray(incoming.tiles)) {
+    return res.status(400).json({ error: 'not site data' });
+  }
+  const current = readState();
+  // newest _t wins, like the browser copy
+  if (current && (current._t || 0) > (incoming._t || 0)) {
+    return res.status(409).json({ error: 'newer version on server', t: current._t });
+  }
+  const moved = { n: 0 };
+  const state = extractImages(incoming, moved);
+  writeState(state);
+  res.json({ ok: true, t: state._t, moved: moved.n, state: moved.n ? state : undefined });
+});
+
+app.post('/api/upload', requireAdmin, express.raw({ type: Object.keys(MIME_EXT), limit: '20mb' }), (req, res) => {
+  if (!Buffer.isBuffer(req.body) || !req.body.length) return res.status(400).json({ error: 'no picture' });
+  const url = saveImage(req.body, req.get('content-type').split(';')[0].trim());
+  if (!url) return res.status(415).json({ error: 'unsupported picture type' });
+  res.json({ url });
+});
+
+app.post('/api/login', express.json({ limit: '10kb' }), (req, res) => {
+  if (!ADMIN_PASSWORD) return res.status(503).json({ error: 'ADMIN_PASSWORD is not set' });
+  if (lockedOut(req.ip)) return res.status(429).json({ error: 'too many tries' });
+  if (!passwordMatches(req.body && req.body.password)) {
+    noteFailure(req.ip);
+    return res.status(401).json({ error: 'wrong password' });
+  }
+  failures.delete(req.ip);
+  res.cookie('cs_admin', makeToken(), {
+    httpOnly: true, sameSite: 'lax', secure: req.secure, maxAge: SESSION_DAYS * 864e5, path: '/',
+  });
+  res.json({ ok: true });
+});
+
+app.post('/api/logout', (req, res) => {
+  res.clearCookie('cs_admin', { path: '/' }).json({ ok: true });
+});
+
+app.get('/api/me', (req, res) => res.json({ admin: isAdmin(req) }));
+
+// Click tracking (sent by the page with navigator.sendBeacon)
+let traffic = { d: {}, n: {} };
+try { traffic = JSON.parse(fs.readFileSync(TRAFFIC_FILE, 'utf8')); } catch (e) {}
+let trafficT = 0;
+app.post('/api/track', express.text({ type: '*/*', limit: '2kb' }), (req, res) => {
+  try {
+    const { id, label, day } = JSON.parse(req.body);
+    if (typeof id === 'string' && id.length < 100 && /^\d{4}-\d{2}-\d{2}$/.test(day)) {
+      const o = traffic.d[day] = traffic.d[day] || {};
+      o[id] = (o[id] || 0) + 1;
+      if (typeof label === 'string') traffic.n[id] = label.slice(0, 200);
+      clearTimeout(trafficT);
+      trafficT = setTimeout(() => writeAtomic(TRAFFIC_FILE, JSON.stringify(traffic)), 2000);
+    }
+  } catch (e) {}
+  res.status(204).end();
+});
+app.get('/api/traffic', requireAdmin, (req, res) => res.json(traffic));
+
+app.use((req, res) => res.status(404).send('Not found'));
+
+if (require.main === module) {
+  if (!ADMIN_PASSWORD) console.warn('WARNING: ADMIN_PASSWORD is not set – nobody can log in to the Back page or save.');
+  app.listen(PORT, () => console.log('The Comparison Society running on port ' + PORT + ', data in ' + DATA_DIR));
+}
+
+module.exports = app;
