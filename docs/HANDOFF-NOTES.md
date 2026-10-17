@@ -63,3 +63,11 @@ Open the file, click `#gear`, then `.bn a[data-s=home]` (group), then `.bn a[dat
 - Figures on some comparison images are disputed (the owner says two boats have the same range; image says 350 / 440).
 - Spec-panel automation (blank panel then filled from web search) was demoed; the owner is still deciding. Prices must always be included.
 - Phone view: two boat pictures stack with the joined title/text; works but has had little testing.
+
+## Status (17 Oct 2026)
+- Live on Railway: https://scintillating-cat-production-5a5a.up.railway.app (service "scintillating-cat", deploys from `main`, volume at `/data`, variables `ADMIN_PASSWORD` and `SESSION_SECRET` set). The old failed "Comparison-" service can be deleted.
+- Work branch `claude/railway-server`; `main` matches it. Every change goes to both, and pushing `main` redeploys the site.
+- Claude test copy (browser storage only): https://claude.ai/artifact/Dzc1eyKptDCtjYJMYjawDB
+- Done today: Admin login, server saving and picture uploads, logo boxes fit and say "Drop or click here to add logo", Title joined also on the home holders, corner rounding, joined-title glow evened out, empty title frames at full brightness, separate title sizes for thumbnails and the enlarged picture (Small to Extra large), PNG/WebP/GIF logos stay transparent.
+- Owner types thumbnail titles by hand; the "read title from image" feature can go.
+- Next: clear out Back page options the owner finds over the top. Suggested candidates: page size meter, browser recovery copies and backups (server keeps 30 versions), the 7 traffic report pages (make one server-backed page), read title from image, the "Drop files here" tip, Back page appearance, headline styling and typing effect, the per-picture "Extra settings" switches, holder colour patterns, 3 custom backgrounds, extra corporate pages, "Example" watermarks, per-banner slideshow switches. Removing a switch must keep the current look.
