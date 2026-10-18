@@ -68,3 +68,16 @@ test('picture upload needs a login and returns an address', async () => {
   const r = await fetch(base + '/api/upload', { method: 'POST', headers: { 'Content-Type': 'image/jpeg', Cookie: cookie }, body });
   assert.match((await r.json()).url, /^\/uploads\/[0-9a-f]{32}\.jpg$/);
 });
+
+test('a lighter thumbnail copy is made from a large picture', async () => {
+  const sharp = require('sharp');
+  const big = await sharp({ create: { width: 1920, height: 1080, channels: 3, background: '#336699' } }).jpeg().toBuffer();
+  const up = await (await fetch(base + '/api/upload', { method: 'POST', headers: { 'Content-Type': 'image/jpeg', Cookie: cookie }, body: big })).json();
+  const t = await fetch(base + up.url.replace(/\.jpg$/, '.t.jpg'));
+  assert.strictEqual(t.status, 200);
+  const meta = await sharp(Buffer.from(await t.arrayBuffer())).metadata();
+  assert.strictEqual(meta.width, 1000);
+  const full = await sharp(Buffer.from(await (await fetch(base + up.url)).arrayBuffer())).metadata();
+  assert.strictEqual(full.width, 1920);
+  assert.strictEqual((await fetch(base + '/uploads/' + '0'.repeat(32) + '.t.jpg')).status, 404);
+});

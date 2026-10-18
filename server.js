@@ -4,6 +4,7 @@
 // and protects saving behind an admin password.
 
 const express = require('express');
+const sharp = require('sharp');
 const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
@@ -19,6 +20,7 @@ const SECRET = process.env.SESSION_SECRET || ADMIN_PASSWORD;
 const HISTORY_KEEP = 30;
 const SESSION_DAYS = 30;
 const MIME_EXT = { 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp', 'image/gif': 'gif' };
+const THUMB_WIDTH = 1000;
 
 for (const d of [DATA_DIR, UPLOAD_DIR, HISTORY_DIR]) fs.mkdirSync(d, { recursive: true });
 
@@ -141,6 +143,25 @@ function sendSite(req, res) {
 
 app.get('/', sendSite);
 app.get('/index.html', sendSite);
+
+// Lighter copy of a picture for thumbnails and holders (made the first time it is asked for)
+app.get(/^\/uploads\/([0-9a-f]{32})\.t\.(jpg|png|webp)$/, async (req, res, next) => {
+  const [name, ext] = [req.params[0], req.params[1]];
+  const thumb = path.join(UPLOAD_DIR, name + '.t.' + ext);
+  const full = path.join(UPLOAD_DIR, name + '.' + ext);
+  try {
+    if (!fs.existsSync(thumb)) {
+      if (!fs.existsSync(full)) return res.status(404).send('Not found');
+      const buf = await sharp(full).resize({ width: THUMB_WIDTH, withoutEnlargement: true })
+        .toFormat(ext === 'jpg' ? 'jpeg' : ext, { quality: 85 }).toBuffer();
+      writeAtomic(thumb, buf);
+    }
+    res.set('Cache-Control', 'public, max-age=31536000, immutable').sendFile(thumb);
+  } catch (e) {
+    console.error('Making a thumbnail failed:', e);
+    res.set('Cache-Control', 'no-store').sendFile(full, err => { if (err) next(); });
+  }
+});
 
 app.use('/uploads', express.static(UPLOAD_DIR, { immutable: true, maxAge: '365d', index: false }));
 
