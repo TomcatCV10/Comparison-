@@ -161,14 +161,26 @@ app.put('/api/state', requireAdmin, express.json({ limit: '60mb' }), (req, res) 
     return res.status(409).json({ error: 'newer version on server', t: current._t });
   }
   const moved = { n: 0 };
-  const state = extractImages(incoming, moved);
-  writeState(state);
+  let state;
+  try {
+    state = extractImages(incoming, moved);
+    writeState(state);
+  } catch (e) {
+    console.error('Saving the site data failed:', e);
+    return res.status(500).json({ error: 'could not save: ' + e.message });
+  }
   res.json({ ok: true, t: state._t, moved: moved.n, state: moved.n ? state : undefined });
 });
 
 app.post('/api/upload', requireAdmin, express.raw({ type: Object.keys(MIME_EXT), limit: '20mb' }), (req, res) => {
   if (!Buffer.isBuffer(req.body) || !req.body.length) return res.status(400).json({ error: 'no picture' });
-  const url = saveImage(req.body, req.get('content-type').split(';')[0].trim());
+  let url;
+  try {
+    url = saveImage(req.body, req.get('content-type').split(';')[0].trim());
+  } catch (e) {
+    console.error('Saving a picture failed:', e);
+    return res.status(500).json({ error: 'could not save picture: ' + e.message });
+  }
   if (!url) return res.status(415).json({ error: 'unsupported picture type' });
   res.json({ url });
 });
@@ -192,6 +204,31 @@ app.post('/api/logout', (req, res) => {
 });
 
 app.get('/api/me', (req, res) => res.json({ admin: isAdmin(req) }));
+
+// Plain check of the storage, for finding out why saving does not work
+app.get('/api/status', (req, res) => {
+  let writable = false;
+  try {
+    const f = path.join(DATA_DIR, '.write-test');
+    fs.writeFileSync(f, 'ok');
+    fs.unlinkSync(f);
+    writable = true;
+  } catch (e) {}
+  let saved = null;
+  try { saved = new Date(fs.statSync(STATE_FILE).mtimeMs).toISOString(); } catch (e) {}
+  let pictures = 0;
+  try { pictures = fs.readdirSync(UPLOAD_DIR).length; } catch (e) {}
+  res.set('Cache-Control', 'no-store').json({
+    loggedIn: isAdmin(req),
+    passwordSet: !!ADMIN_PASSWORD,
+    volume: process.env.RAILWAY_VOLUME_MOUNT_PATH || 'none',
+    dataFolder: DATA_DIR,
+    storageWritable: writable,
+    siteDataSaved: saved,
+    picturesStored: pictures,
+    codeVersion: (process.env.RAILWAY_GIT_COMMIT_SHA || 'local').slice(0, 7),
+  });
+});
 
 // Click tracking (sent by the page with navigator.sendBeacon)
 let traffic = { d: {}, n: {} };
