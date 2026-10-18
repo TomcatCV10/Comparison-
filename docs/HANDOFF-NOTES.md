@@ -81,4 +81,5 @@ Open the file, click `#gear`, then `.bn a[data-s=home]` (group), then `.bn a[dat
 
 ## Next session
 1. Separate Back page: move the Admin to its own private, password-protected address (for example `/admin`) and remove the gear button from the public site. Visitors never see an Admin button. Keep login, auto-save and everything the Back page does now.
-2. Continue the Back page clear-out item by item. The owner shows a screenshot of each option; wait for their go-ahead before deleting anything.
+2. Speed: move the Railway service region from US East to EU West (Amsterdam) for UK visitors (scintillating-cat → Settings → Region). Slideshow background loading is already done (18 Oct).
+3. Continue the Back page clear-out item by item. The owner shows a screenshot of each option; wait for their go-ahead before deleting anything.
