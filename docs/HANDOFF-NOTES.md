@@ -71,3 +71,14 @@ Open the file, click `#gear`, then `.bn a[data-s=home]` (group), then `.bn a[dat
 - Done today: Admin login, server saving and picture uploads, logo boxes fit and say "Drop or click here to add logo", Title joined also on the home holders, corner rounding, joined-title glow evened out, empty title frames at full brightness, separate title sizes for thumbnails and the enlarged picture (Small to Extra large), PNG/WebP/GIF logos stay transparent.
 - Owner types thumbnail titles by hand; the "read title from image" feature can go.
 - Next: clear out Back page options the owner finds over the top. Suggested candidates: page size meter, browser recovery copies and backups (server keeps 30 versions), the 7 traffic report pages (make one server-backed page), read title from image, the "Drop files here" tip, Back page appearance, headline styling and typing effect, the per-picture "Extra settings" switches, holder colour patterns, 3 custom backgrounds, extra corporate pages, "Example" watermarks, per-banner slideshow switches. Removing a switch must keep the current look.
+
+## Status (18 Oct 2026)
+- Saving: on the server every change is saved within 3 s (and when leaving the page). Save errors show a message. `/api/status` shows login, storage and saved-data state.
+- The old "Comparison-" Railway service is deleted; only "scintillating-cat" (with volume) remains.
+- The Claude test copy is NOT connected to Railway. Real content goes on the live site only.
+- Done today: missing pictures are hidden (no "?" icon); Back page text and marker colour switches removed; Advertise example banner has no expand or link; "Together" renamed "Unison"; "Title frames" renamed "Show title"; Extra large headline 2pt smaller; "read title from image" removed; solid enlarged title bar; calmer V that follows the Frame brightness and Glow sliders; enlarged title bar grows for long names; title switch is Off/On (On also shows on the enlarged picture); thumbnail sizes Small/Medium/Large, enlarged sizes Medium/Large/Extra large; two-line title box in the Back page; only an over-long thumbnail title shrinks; pictures kept up to 2000px at quality 0.9; server makes 1000px `.t.` copies (sharp) for sub-page thumbnails; home holders use full pictures.
+- The owner makes comparison pictures by hand in Final Cut Pro (Save Current Frame, PNG or JPEG, 1920x1080) and will remove names from the pictures and use darker backgrounds behind the spec boxes.
+
+## Next session
+1. Separate Back page: move the Admin to its own private, password-protected address (for example `/admin`) and remove the gear button from the public site. Visitors never see an Admin button. Keep login, auto-save and everything the Back page does now.
+2. Continue the Back page clear-out item by item. The owner shows a screenshot of each option; wait for their go-ahead before deleting anything.
