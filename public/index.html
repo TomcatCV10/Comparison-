@@ -506,6 +506,7 @@ matchMedia('(max-width:700px)').addEventListener('change',()=>render());
 document.addEventListener('paste',e=>{const t=e.target&&e.target.tagName;if(t==='INPUT'||t==='TEXTAREA')return;const id=window.__DZ,fn=id&&DZF[id];if(!fn||!document.querySelector('.dz[data-id="'+id+'"]'))return;const cd=e.clipboardData,items=cd&&cd.items?Array.prototype.slice.call(cd.items):[];let f=null;for(const it of items){if(it.kind==='file'&&/^image\//.test(it.type)){f=it.getAsFile();break}}if(!f&&cd&&cd.files&&cd.files[0]&&/^image\//.test(cd.files[0].type))f=cd.files[0];if(!f){toast('Nothing to paste: copy a picture first');return}e.preventDefault();img(f,fn);toast('Picture pasted')});
 /* a file dropped anywhere except a drop zone must never open in the browser (white screen) */
 ['dragover','drop'].forEach(v=>window.addEventListener(v,e=>{const t=e.dataTransfer&&e.dataTransfer.types;if(t&&Array.prototype.indexOf.call(t,'Files')>-1){e.preventDefault();if(v==='drop'){document.querySelectorAll('.hot').forEach(x=>x.classList.remove('hot'));if(!(e.target.closest&&e.target.closest('.dz,.tc')))toast('Click a drop zone in the Back page and choose the picture')}}}));
+document.addEventListener('error',e=>{const t=e.target;if(t&&t.tagName==='IMG')t.style.visibility='hidden'},true);
 render();
 window.__OK=1;{const b=document.getElementById('boot');if(b)b.remove();if(window.__SAFE)toast('Safe mode: nothing is being saved. Close and reopen the page to return to normal.')}
 </script><!--CS-END--></body></html>
