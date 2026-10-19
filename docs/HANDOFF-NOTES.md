@@ -47,6 +47,7 @@ Many controls are On/Off switches. "Extra settings" switches (size, move X/Y, br
 - Captions are written by hand in a plain text box. The "write text from my points" automatic writer was tried and removed on request. Do not re-add it.
 - Do not make the neon glow spill onto neighbouring boxes more than it does now: a tighter glow and a clipped seam were both tried and rejected, and the original look was restored.
 - Prices must always be shown in spec panels, labelled with their basis (see "Open items").
+- KEEP the "Extra settings" on/off switch on every picture (it hides the size, move and brightness sliders so the Back page doesn't scroll too far). Do not remove it.
 
 ## Moving to Claude Code + Railway (suggested plan)
 1. Serve the template as a static file (Node/Express or similar) on Railway.
