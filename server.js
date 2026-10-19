@@ -130,19 +130,21 @@ const app = express();
 app.set('trust proxy', 1);
 app.disable('x-powered-by');
 
-function sendSite(req, res) {
+function sendSite(req, res, adminPage) {
   const state = readState();
   let html = TEMPLATE;
   if (state) {
     const json = JSON.stringify(state).replace(/</g, '\\u003c');
     html = html.replace(SEED_RE, (m, a, b) => a + json + b);
   }
-  html = html.replace('<meta charset=utf8>', '<meta charset=utf8><script>window.__SERVER=1;window.__ADMIN=' + (isAdmin(req) ? 1 : 0) + '</script>');
+  html = html.replace('<meta charset=utf8>', '<meta charset=utf8><script>window.__SERVER=1;window.__ADMIN=' + (isAdmin(req) ? 1 : 0) + (adminPage === true ? ';window.__ADMINPAGE=1' : '') + '</script>');
   res.set('Cache-Control', 'no-store').type('html').send(html);
 }
 
-app.get('/', sendSite);
-app.get('/index.html', sendSite);
+app.get('/', (req, res) => sendSite(req, res));
+app.get('/index.html', (req, res) => sendSite(req, res));
+// The Back page lives at its own address; the public site has no Admin button
+app.get(['/admin', '/admin/'], (req, res) => { res.set('X-Robots-Tag', 'noindex, nofollow'); sendSite(req, res, true); });
 
 // Lighter copy of a picture for thumbnails and holders (made the first time it is asked for)
 app.get(/^\/uploads\/([0-9a-f]{32})\.t\.(jpg|png|webp)$/, async (req, res, next) => {

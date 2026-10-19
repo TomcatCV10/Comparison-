@@ -81,3 +81,12 @@ test('a lighter thumbnail copy is made from a large picture', async () => {
   assert.strictEqual(full.width, 1920);
   assert.strictEqual((await fetch(base + '/uploads/' + '0'.repeat(32) + '.t.jpg')).status, 404);
 });
+
+test('the admin page is separate and not indexed', async () => {
+  const pub = await (await fetch(base + '/')).text();
+  assert.doesNotMatch(pub, /window\.__ADMINPAGE=1/);
+  const r = await fetch(base + '/admin');
+  assert.strictEqual(r.status, 200);
+  assert.strictEqual(r.headers.get('x-robots-tag'), 'noindex, nofollow');
+  assert.match(await r.text(), /window\.__ADMINPAGE=1/);
+});

@@ -80,6 +80,6 @@ Open the file, click `#gear`, then `.bn a[data-s=home]` (group), then `.bn a[dat
 - The owner makes comparison pictures by hand in Final Cut Pro (Save Current Frame, PNG or JPEG, 1920x1080) and will remove names from the pictures and use darker backgrounds behind the spec boxes.
 
 ## Next session
-1. Separate Back page: move the Admin to its own private, password-protected address (for example `/admin`) and remove the gear button from the public site. Visitors never see an Admin button. Keep login, auto-save and everything the Back page does now.
+1. DONE 19 Oct: the Back page is at `/admin` (password from `ADMIN_PASSWORD`, View site and Log out buttons). The public site has no Admin button. The Railway service is now named "The Comparison Society"; its address is unchanged.
 2. Speed: move the Railway service region from US East to EU West (Amsterdam) for UK visitors (scintillating-cat → Settings → Region). Slideshow background loading is already done (18 Oct).
 3. Continue the Back page clear-out item by item. The owner shows a screenshot of each option; wait for their go-ahead before deleting anything.
