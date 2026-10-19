@@ -85,8 +85,12 @@ test('a lighter thumbnail copy is made from a large picture', async () => {
 test('the admin page is separate and not indexed', async () => {
   const pub = await (await fetch(base + '/')).text();
   assert.doesNotMatch(pub, /window\.__ADMINPAGE=1/);
-  const r = await fetch(base + '/admin');
-  assert.strictEqual(r.status, 200);
-  assert.strictEqual(r.headers.get('x-robots-tag'), 'noindex, nofollow');
+  const anon = await fetch(base + '/admin');
+  assert.strictEqual(anon.status, 200);
+  assert.strictEqual(anon.headers.get('x-robots-tag'), 'noindex, nofollow');
+  const anonHtml = await anon.text();
+  assert.match(anonHtml, /Back page login/);
+  assert.doesNotMatch(anonHtml, /__ADMINPAGE|id="adm"|id="seed"/);
+  const r = await fetch(base + '/admin', { headers: { Cookie: cookie } });
   assert.match(await r.text(), /window\.__ADMINPAGE=1/);
 });
