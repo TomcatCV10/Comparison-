@@ -94,3 +94,8 @@ test('the admin page is separate and not indexed', async () => {
   const r = await fetch(base + '/admin', { headers: { Cookie: cookie } });
   assert.match(await r.text(), /window\.__ADMINPAGE=1/);
 });
+
+test('the website file is sent compressed', async () => {
+  const r = await fetch(base + '/', { headers: { 'Accept-Encoding': 'gzip' } });
+  assert.strictEqual(r.headers.get('content-encoding'), 'gzip');
+});

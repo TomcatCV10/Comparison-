@@ -5,6 +5,7 @@
 
 const express = require('express');
 const sharp = require('sharp');
+const compression = require('compression');
 const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
@@ -129,6 +130,7 @@ function requireAdmin(req, res, next) {
 const app = express();
 app.set('trust proxy', 1);
 app.disable('x-powered-by');
+app.use(compression());
 
 function sendSite(req, res, adminPage) {
   const state = readState();
