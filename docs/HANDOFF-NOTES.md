@@ -83,3 +83,13 @@ Open the file, click `#gear`, then `.bn a[data-s=home]` (group), then `.bn a[dat
 1. DONE 19 Oct: the Back page is at `/admin` (password from `ADMIN_PASSWORD`, View site and Log out buttons). The public site has no Admin button. The Railway service is now named "The Comparison Society"; its address is unchanged.
 2. Speed: move the Railway service region from US East to EU West (Amsterdam) for UK visitors (scintillating-cat → Settings → Region). Slideshow background loading is already done (18 Oct).
 3. Continue the Back page clear-out item by item. The owner shows a screenshot of each option; wait for their go-ahead before deleting anything.
+
+## Status (19 Oct 2026)
+- Railway: single service "The Comparison Society" (old "Comparison-" deleted), moved to EU West (Amsterdam), volume attached. Address still https://scintillating-cat-production-5a5a.up.railway.app
+- Admin: `/admin` sends only a login page until the password is right; the public site has no Admin button. The owner has set their own ADMIN_PASSWORD and SESSION_SECRET.
+- Done today: hide adverts whose picture file is missing; picker boxes always show their number (missing-picture boxes look empty); enlarged title sizes stepped up (Medium = old Large, Large = old Extra large, new 40px Extra large) with the bar growing to fit; the Title layout switch now also applies to the enlarged picture; phones open a comparison straight into the full-width scroll view (title stays on top, no double-tap); slideshow pictures load in the background.
+
+## Next session
+1. The owner is buying thecomparisonsociety.com (main) and comparisonsociety.com (redirect), probably at Cloudflare. Connect both: Railway → Settings → Networking → Custom Domain, add the DNS records, and redirect the second domain to the first. Fix the Contact page email typo ("comparasion") to the new domain once email is set up.
+2. SEO pack (after the domain is connected): real page addresses instead of #/p1, server-rendered titles, captions and descriptions, a sitemap, alt text, and JSON-LD.
+3. Continue the Back page clear-out item by item, with the owner's OK each time.
