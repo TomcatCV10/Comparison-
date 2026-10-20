@@ -3,12 +3,12 @@
 :root{--f:'Exo 2','Titillium Web','Segoe UI',Arial,sans-serif;--aw:clamp(260px,32vw,380px);--page-bg:linear-gradient(160deg,#01030d 0%,#041a5c 55%,#06388a 100%);box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);--bg1:#02061a;--bg2:#06268a;--bg3:#0b5bd6;--tx:#fff;--panel:#08133a;--red:#ff1f3d;--blue:#1e90ff;--green:#22ff66;--yellow:#ffe600}
 *,*:before,*:after{box-sizing:inherit}
 html{scroll-padding-top:env(safe-area-inset-top,0px);background:var(--page-bg);min-height:100%}
-html[data-pbm="white"] header{background:#050d33}html[data-pbm="white"] .tile{background-color:#06103a}
+html[data-pbm="white"] header{background:#000}html[data-pbm="white"] .tile{background-color:#06103a}
 #pbw{display:none;position:fixed;inset:0;overflow:hidden;z-index:0;pointer-events:none}#pbi{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
 body{margin:0;background:transparent;position:relative;min-height:100vh;color:var(--tx);font-family:'Segoe UI',Roboto,Arial,sans-serif}
 .wrap{position:relative;z-index:1;font-family:var(--f);font-style:italic;max-width:1300px;margin:0 auto;padding:16px 16px 90px;display:flex;flex-direction:column;gap:16px}
 .neon{border:2px solid color-mix(in srgb,var(--c,#4aa3ff),var(--fbm,#000) var(--fbp,0%));border-radius:18px;box-shadow:0 0 calc(6px*var(--g,1)) color-mix(in srgb,var(--c,#4aa3ff) calc(var(--gi,100)*1%),transparent),0 0 calc(22px*var(--g,1)) color-mix(in srgb,var(--c,#4aa3ff) calc(var(--gi,100)*1%),transparent),inset 0 0 14px color-mix(in srgb,var(--c,#4aa3ff) 45%,transparent)}
-header,footer{background:rgba(3,10,40,.6);overflow:hidden;isolation:isolate}header,footer{--c:#ffe600}
+header,footer{background:rgba(3,10,40,.6);overflow:hidden;isolation:isolate}header{background:#000}header,footer{--c:#ffe600}
 .top{display:flex;align-items:center;gap:20px;padding:12px 20px;flex-wrap:wrap}
 .top img{height:70px;max-width:100%}
 .lbox{display:none;position:relative;width:240px;height:70px;max-width:100%;overflow:hidden;flex:none}.top .lbox img,.fbrand .lbox img{height:100%;margin:0;max-width:none;outline:none;box-shadow:none;border-radius:0}.fbrand .lbox{display:block;margin-bottom:14px;border-radius:6px;outline:2px solid transparent;outline-offset:2px;transition:box-shadow .15s,outline-color .15s}.fbrand .lbox:hover{outline-color:#ff1f3d;box-shadow:0 0 calc(14px*var(--g,1)) color-mix(in srgb,#ff1f3d calc(var(--gi,100)*1%),transparent),0 0 calc(28px*var(--g,1)) color-mix(in srgb,rgba(255,31,61,.6) calc(var(--gi,100)*1%),transparent)}
